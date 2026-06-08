@@ -1,15 +1,15 @@
 import streamlit as st
 
-from pages.alerts_dashboard import render as render_alerts
-from pages.executive_dashboard import render as render_executive
-from pages.export_center import render as render_export
-from pages.forecast_tracker import render as render_forecast
-from pages.group_dashboard import render as render_group
-from pages.pace_analysis import render as render_pace
-from pages.pickup_analysis import render as render_pickup
-from pages.pickup_calendar import render as render_calendar
-from pages.projection_dashboard import render as render_projection
-from pages.transient_dashboard import render as render_transient
+from views.alerts_dashboard import render as render_alerts
+from views.executive_dashboard import render as render_executive
+from views.export_center import render as render_export
+from views.forecast_tracker import render as render_forecast
+from views.group_dashboard import render as render_group
+from views.pace_analysis import render as render_pace
+from views.pickup_analysis import render as render_pickup
+from views.pickup_calendar import render as render_calendar
+from views.projection_dashboard import render as render_projection
+from views.transient_dashboard import render as render_transient
 from utils.calculations import build_dashboard_context
 from utils.data_loader import load_workbook
 from utils.helpers import apply_theme, show_error_box

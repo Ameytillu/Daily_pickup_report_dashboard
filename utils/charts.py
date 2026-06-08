@@ -68,7 +68,8 @@ def gauge(value: float, title: str, suffix: str = "%", max_value: float = 100):
 def calendar_heatmap(pickup: pd.DataFrame, metric: str = "revenue_pickup"):
     if pickup.empty:
         return go.Figure()
-    df = pickup[["date", metric, "rooms_pickup", "revenue_pickup", "adr_pickup"]].copy()
+    columns = list(dict.fromkeys(["date", metric, "rooms_pickup", "revenue_pickup", "adr_pickup"]))
+    df = pickup[columns].copy()
     df["day"] = df["date"].dt.day
     df["weekday"] = df["date"].dt.weekday
     df["week"] = ((df["day"] + df["date"].dt.to_period("M").dt.start_time.dt.weekday - 1) // 7) + 1
