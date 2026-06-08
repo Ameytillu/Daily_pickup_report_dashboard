@@ -1,0 +1,55 @@
+<svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="900" fill="#F6F8FB"/>
+  <rect width="280" height="900" fill="#FFFFFF"/>
+  <rect x="24" y="28" width="232" height="54" rx="8" fill="#172033"/>
+  <rect x="40" y="40" width="30" height="30" rx="4" fill="#15803D"/>
+  <text x="84" y="61" fill="white" font-family="Arial" font-size="18" font-weight="700">Revenue Pickup</text>
+  <text x="320" y="62" fill="#172033" font-family="Arial" font-size="30" font-weight="700">Executive Dashboard</text>
+  <text x="320" y="96" fill="#667085" font-family="Arial" font-size="16">Monthly OTB pace, pickup, segment mix, and forecast status</text>
+  <g fill="#FFFFFF" stroke="#D9E2EC">
+    <rect x="320" y="132" width="215" height="118" rx="8"/>
+    <rect x="555" y="132" width="215" height="118" rx="8"/>
+    <rect x="790" y="132" width="215" height="118" rx="8"/>
+    <rect x="1025" y="132" width="215" height="118" rx="8"/>
+    <rect x="320" y="276" width="215" height="118" rx="8"/>
+    <rect x="555" y="276" width="215" height="118" rx="8"/>
+    <rect x="790" y="276" width="215" height="118" rx="8"/>
+    <rect x="1025" y="276" width="215" height="118" rx="8"/>
+  </g>
+  <g font-family="Arial">
+    <text x="342" y="164" fill="#667085" font-size="12" font-weight="700">OTB ROOMS</text>
+    <text x="342" y="206" fill="#172033" font-size="34" font-weight="700">9,842</text>
+    <text x="577" y="164" fill="#667085" font-size="12" font-weight="700">OTB REVENUE</text>
+    <text x="577" y="206" fill="#172033" font-size="34" font-weight="700">$3.1M</text>
+    <text x="812" y="164" fill="#667085" font-size="12" font-weight="700">ADR</text>
+    <text x="812" y="206" fill="#172033" font-size="34" font-weight="700">$318</text>
+    <text x="1047" y="164" fill="#667085" font-size="12" font-weight="700">OCCUPANCY</text>
+    <text x="1047" y="206" fill="#172033" font-size="34" font-weight="700">73.4%</text>
+    <text x="342" y="308" fill="#667085" font-size="12" font-weight="700">REVENUE GAP</text>
+    <text x="342" y="350" fill="#15803D" font-size="34" font-weight="700">$124K</text>
+    <text x="577" y="308" fill="#667085" font-size="12" font-weight="700">ACHIEVEMENT</text>
+    <text x="577" y="350" fill="#15803D" font-size="34" font-weight="700">104.1%</text>
+    <text x="812" y="308" fill="#667085" font-size="12" font-weight="700">REVENUE NEEDED</text>
+    <text x="812" y="350" fill="#15803D" font-size="34" font-weight="700">Ahead</text>
+    <text x="1047" y="308" fill="#667085" font-size="12" font-weight="700">ROOMS NEEDED</text>
+    <text x="1047" y="350" fill="#DC2626" font-size="34" font-weight="700">186</text>
+  </g>
+  <rect x="320" y="432" width="420" height="310" rx="8" fill="#FFFFFF" stroke="#D9E2EC"/>
+  <rect x="780" y="432" width="460" height="310" rx="8" fill="#FFFFFF" stroke="#D9E2EC"/>
+  <text x="344" y="470" fill="#172033" font-family="Arial" font-size="20" font-weight="700">Revenue Mix</text>
+  <circle cx="530" cy="594" r="88" fill="none" stroke="#7C3AED" stroke-width="44"/>
+  <path d="M530 506A88 88 0 0 1 613 625" stroke="#0F766E" stroke-width="44" fill="none"/>
+  <path d="M613 625A88 88 0 0 1 470 660" stroke="#475467" stroke-width="44" fill="none"/>
+  <text x="804" y="470" fill="#172033" font-family="Arial" font-size="20" font-weight="700">Pickup Summary</text>
+  <g stroke="#D9E2EC" stroke-width="2">
+    <line x1="820" y1="532" x2="1200" y2="532"/>
+    <line x1="820" y1="590" x2="1200" y2="590"/>
+    <line x1="820" y1="648" x2="1200" y2="648"/>
+  </g>
+  <g font-family="Arial" font-size="18" fill="#172033">
+    <text x="820" y="510">Rooms Pickup</text><text x="1130" y="510" font-weight="700">418</text>
+    <text x="820" y="568">Revenue Pickup</text><text x="1130" y="568" font-weight="700">$142K</text>
+    <text x="820" y="626">Transient Pickup</text><text x="1130" y="626" font-weight="700">$96K</text>
+    <text x="820" y="684">Group Pickup</text><text x="1130" y="684" font-weight="700">$46K</text>
+  </g>
+</svg>
