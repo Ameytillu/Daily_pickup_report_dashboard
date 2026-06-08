@@ -34,6 +34,7 @@ def build_dashboard_context(workbook: WorkbookData, previous_sheet: str, current
         pickup = calculated_pickup
 
     metrics = calculate_month_metrics(current.pace, pickup, current.summary)
+    _apply_snapshot_context(metrics, current.pace, current_sheet)
     forecast_table = build_forecast_table(metrics, current.summary)
     return DashboardContext(
         previous_sheet=previous_sheet,
@@ -102,6 +103,11 @@ def _zero_pickup_from_pace(pace: pd.DataFrame) -> pd.DataFrame:
 
 def calculate_month_metrics(pace: pd.DataFrame, pickup: pd.DataFrame, summary: dict) -> dict:
     days = max(int(pace["date"].nunique()), 1)
+    snapshot_date = pace["date"].min() if not pace.empty and "date" in pace else pd.NaT
+    days_in_month = int(snapshot_date.days_in_month) if pd.notna(snapshot_date) else days
+    days_elapsed = int(snapshot_date.day) if pd.notna(snapshot_date) else days
+    days_remaining = max(days_in_month - days_elapsed, 0)
+    pace_expected_pct = days_elapsed / days_in_month * 100 if days_in_month else np.nan
     otb_rooms = pace["rooms"].sum()
     otb_revenue = pace["revenue"].sum()
     transient_rooms = pace["transient_rooms"].sum()
@@ -137,6 +143,11 @@ def calculate_month_metrics(pace: pd.DataFrame, pickup: pd.DataFrame, summary: d
         "group_revenue_pickup": pickup["group_revenue_pickup"].sum() if not pickup.empty else 0,
         "group_adr_pickup": _scalar_divide(pickup["group_revenue_pickup"].sum(), pickup["group_rooms_pickup"].sum()) if not pickup.empty else 0,
         "other_revenue": other_revenue,
+        "snapshot_date": snapshot_date,
+        "days_elapsed": days_elapsed,
+        "days_in_month": days_in_month,
+        "days_remaining": days_remaining,
+        "pace_expected_pct": pace_expected_pct,
         "forecast_revenue": forecast_revenue,
         "budget_revenue": summary.get("budget_revenue", np.nan),
         "forecast_rooms": forecast_rooms,
@@ -173,9 +184,31 @@ def build_forecast_table(metrics: dict, summary: dict) -> pd.DataFrame:
     table = pd.DataFrame(rows, columns=["Metric", "Forecast", "Current OTB"])
     table["Gap"] = table["Current OTB"] - table["Forecast"]
     table["Achievement %"] = _safe_divide(table["Current OTB"], table["Forecast"]) * 100
+    table["Pace-Adjusted Expected %"] = metrics["pace_expected_pct"]
+    table["vs Expected"] = table["Achievement %"] - table["Pace-Adjusted Expected %"]
     table["Needed"] = table["Forecast"] - table["Current OTB"]
-    table.loc[table["Forecast"].isna(), ["Gap", "Achievement %", "Needed"]] = np.nan
+    table.loc[
+        table["Forecast"].isna(),
+        ["Gap", "Achievement %", "Pace-Adjusted Expected %", "vs Expected", "Needed"],
+    ] = np.nan
     return table
+
+
+def _apply_snapshot_context(metrics: dict, pace: pd.DataFrame, current_sheet: str) -> None:
+    if pace.empty or "date" not in pace:
+        return
+    month_start = pace["date"].min()
+    try:
+        report_day = int(str(current_sheet))
+    except ValueError:
+        report_day = int(month_start.day)
+    report_day = max(1, min(report_day, int(month_start.days_in_month)))
+    snapshot_date = month_start + pd.Timedelta(days=report_day - 1)
+    metrics["snapshot_date"] = snapshot_date
+    metrics["days_elapsed"] = report_day
+    metrics["days_in_month"] = int(snapshot_date.days_in_month)
+    metrics["days_remaining"] = max(metrics["days_in_month"] - report_day, 0)
+    metrics["pace_expected_pct"] = report_day / metrics["days_in_month"] * 100
 
 
 def _safe_forecast_adr(metrics: dict) -> float:

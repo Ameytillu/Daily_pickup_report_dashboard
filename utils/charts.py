@@ -21,25 +21,43 @@ COLORS = {
 
 
 def line_chart(df: pd.DataFrame, y, title: str, color=None):
-    fig = px.line(df, x="date", y=y, markers=True, title=title, color=color)
+    fig = px.line(df, x="date", y=y, markers=True, title=title or "Trend", color=color)
     return style_fig(fig)
 
 
 def bar_chart(df: pd.DataFrame, x, y, title: str, color=None):
-    fig = px.bar(df, x=x, y=y, title=title, color=color)
+    fig = px.bar(df, x=x, y=y, title=title or "Variance", color=color)
     return style_fig(fig)
 
 
-def revenue_mix(transient: float, group: float, other: float):
-    fig = px.pie(
-        names=["Transient", "Group", "Other"],
-        values=[max(transient, 0), max(group, 0), max(other, 0)],
-        title="Revenue Mix",
-        hole=0.52,
-        color=["Transient", "Group", "Other"],
-        color_discrete_map={"Transient": COLORS["Transient"], "Group": COLORS["Group"], "Other": COLORS["Neutral"]},
+def revenue_mix(
+    transient: float,
+    group: float,
+    other: float,
+    transient_rooms: float = 0,
+    group_rooms: float = 0,
+    other_rooms: float = 0,
+):
+    values = [max(transient, 0), max(group, 0), max(other, 0)]
+    rooms = [max(transient_rooms, 0), max(group_rooms, 0), max(other_rooms, 0)]
+    adrs = [
+        transient / transient_rooms if transient_rooms else 0,
+        group / group_rooms if group_rooms else 0,
+        other / other_rooms if other_rooms else 0,
+    ]
+    fig = go.Figure(
+        go.Pie(
+            labels=["Transient", "Group", "Other"],
+            values=values,
+            hole=0.52,
+            marker={"colors": [COLORS["Transient"], COLORS["Group"], COLORS["Neutral"]]},
+            customdata=np.column_stack([rooms, adrs]),
+            textposition="inside",
+            textinfo="percent+label",
+            hovertemplate="%{label} | %{customdata[0]:,.0f} rooms | $%{value:,.0f} | ADR $%{customdata[1]:,.0f}<extra></extra>",
+        )
     )
-    fig.update_traces(textposition="inside", textinfo="percent+label")
+    fig.update_layout(title="Revenue Mix")
     return style_fig(fig, height=360)
 
 
@@ -50,7 +68,7 @@ def gauge(value: float, title: str, suffix: str = "%", max_value: float = 100):
             mode="gauge+number",
             value=safe_value,
             number={"suffix": suffix},
-            title={"text": title},
+            title={"text": title or "Revenue Achievement"},
             gauge={
                 "axis": {"range": [0, max_value]},
                 "bar": {"color": COLORS["Achievement"]},
@@ -65,9 +83,11 @@ def gauge(value: float, title: str, suffix: str = "%", max_value: float = 100):
     return style_fig(fig, height=260)
 
 
-def calendar_heatmap(pickup: pd.DataFrame, metric: str = "revenue_pickup"):
+def calendar_heatmap(pickup: pd.DataFrame, metric: str = "revenue_pickup", title: str | None = None):
     if pickup.empty:
-        return go.Figure()
+        fig = go.Figure()
+        fig.update_layout(title=title or "Revenue Pickup by Day of Week")
+        return fig
     columns = list(dict.fromkeys(["date", metric, "rooms_pickup", "revenue_pickup", "adr_pickup"]))
     df = pickup[columns].copy()
     df["day"] = df["date"].dt.day
@@ -101,7 +121,9 @@ def calendar_heatmap(pickup: pd.DataFrame, metric: str = "revenue_pickup"):
             colorbar={"title": metric.replace("_", " ").title()},
         )
     )
-    fig.update_yaxes(autorange="reversed", title="")
+    fig.update_yaxes(autorange="reversed", title="Week of Month")
+    month_label = df["date"].min().strftime("%B %Y")
+    fig.update_layout(title=title or f"{metric.replace('_', ' ').title()} by Day of Week - {month_label}")
     return style_fig(fig, height=520)
 
 

@@ -16,6 +16,16 @@ from utils.helpers import (
 def render(context):
     m = context.metrics
     page_title("Executive Dashboard", "Monthly OTB pace, pickup, segment mix, and forecast status.")
+    snapshot_date = m["snapshot_date"]
+    snapshot = (
+        f"{snapshot_date.strftime('%b')} {snapshot_date.day}, {snapshot_date.year}"
+        if hasattr(snapshot_date, "strftime")
+        else "-"
+    )
+    st.info(
+        f"Snapshot: {snapshot} | {m['days_elapsed']} of {m['days_in_month']} days elapsed | "
+        f"{m['days_remaining']} days remaining"
+    )
 
     cols = st.columns(4)
     with cols[0]:
@@ -43,7 +53,14 @@ def render(context):
     left, right = st.columns([1, 1])
     with left:
         st.plotly_chart(
-            revenue_mix(m["transient_revenue"], m["group_revenue"], m["other_revenue"]),
+            revenue_mix(
+                m["transient_revenue"],
+                m["group_revenue"],
+                m["other_revenue"],
+                m["transient_rooms"],
+                m["group_rooms"],
+                0,
+            ),
             use_container_width=True,
         )
     with right:
@@ -97,4 +114,3 @@ def render(context):
             "VS Forecast": st.column_config.NumberColumn(format="$%.0f"),
         },
     )
-

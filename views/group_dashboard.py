@@ -14,6 +14,8 @@ def render(context):
     cols[3].metric("Group Pickup", fmt_money(m["group_revenue_pickup"]))
     with cols[4]:
         metric_card("Forecast Gap", fmt_money(m["group_revenue_gap"]))
+    if m["group_rooms_pickup"] < 0:
+        st.error(f"Group attrition detected: {fmt_number(m['group_rooms_pickup'])} rooms since yesterday")
 
     pace = context.current_pace
     pickup = context.pickup
@@ -31,5 +33,4 @@ def render(context):
         st.plotly_chart(line_chart(pace, "group_revenue", "Group Revenue Trend"), use_container_width=True)
     with tabs[4]:
         st.plotly_chart(line_chart(pace, "group_adr", "Group ADR Trend"), use_container_width=True)
-
 

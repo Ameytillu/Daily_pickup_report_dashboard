@@ -7,6 +7,7 @@ def render(context):
     page_title("Top Opportunities & Alerts", "Automatically generated pickup opportunities and forecast risks.")
     pace = context.current_pace.copy()
     pickup = context.pickup.copy()
+    pickup["Reason Flag"] = pickup.apply(_reason_flag, axis=1)
 
     alerts = []
     if context.metrics["revenue_needed"] > 0:
@@ -35,10 +36,27 @@ def render(context):
         st.markdown("#### Top 10 ADR Days")
         st.dataframe(pace.nlargest(10, "adr")[["date", "rooms", "revenue", "adr"]], use_container_width=True)
         st.markdown("#### Negative Pickup Days")
-        st.dataframe(pickup[pickup["revenue_pickup"] < 0][["date", "rooms_pickup", "revenue_pickup", "adr_pickup"]], use_container_width=True)
+        st.dataframe(
+            pickup[pickup["revenue_pickup"] < 0][["date", "rooms_pickup", "revenue_pickup", "adr_pickup", "Reason Flag"]],
+            use_container_width=True,
+        )
 
     st.markdown("#### Revenue Risk Days")
     risk = pickup[(pickup["revenue_pickup"] < 0) | (pickup["rooms_pickup"] < 0)]
-    st.dataframe(risk[["date", "rooms_pickup", "revenue_pickup", "group_revenue_pickup", "transient_revenue_pickup"]], use_container_width=True)
+    st.dataframe(
+        risk[["date", "rooms_pickup", "revenue_pickup", "group_revenue_pickup", "transient_revenue_pickup", "Reason Flag"]],
+        use_container_width=True,
+    )
 
+
+def _reason_flag(row):
+    if row["group_revenue_pickup"] < 0 and row["transient_revenue_pickup"] > 0:
+        return "Segment Shift"
+    if row["rooms_pickup"] > 0 and row["revenue_pickup"] < 0:
+        return "Rate Dilution"
+    if row["rooms_pickup"] < 0 and row["revenue_pickup"] < 0:
+        return "Cancellation"
+    if row["rooms_pickup"] == 0 and row["revenue_pickup"] < 0:
+        return "Rate Reduction"
+    return ""
 
