@@ -103,14 +103,20 @@ def calculate_month_metrics(pace: pd.DataFrame, pickup: pd.DataFrame, summary: d
         "group_revenue_pickup": pickup["group_revenue_pickup"].sum() if not pickup.empty else 0,
         "other_revenue": other_revenue,
         "forecast_revenue": forecast_revenue,
+        "budget_revenue": summary.get("budget_revenue", np.nan),
         "forecast_rooms": forecast_rooms,
         "forecast_transient_revenue": summary.get("forecast_transient_revenue", np.nan),
+        "budget_transient_revenue": summary.get("budget_transient_revenue", np.nan),
         "forecast_group_revenue": summary.get("forecast_group_revenue", np.nan),
+        "budget_group_revenue": summary.get("budget_group_revenue", np.nan),
     }
 
+    metrics["budget_revenue_gap"] = _gap(otb_revenue, metrics["budget_revenue"])
     metrics["revenue_gap"] = _gap(otb_revenue, forecast_revenue)
     metrics["rooms_gap"] = _gap(otb_rooms, forecast_rooms)
+    metrics["budget_transient_revenue_gap"] = _gap(transient_revenue, metrics["budget_transient_revenue"])
     metrics["transient_revenue_gap"] = _gap(transient_revenue, metrics["forecast_transient_revenue"])
+    metrics["budget_group_revenue_gap"] = _gap(group_revenue, metrics["budget_group_revenue"])
     metrics["group_revenue_gap"] = _gap(group_revenue, metrics["forecast_group_revenue"])
     metrics["forecast_achievement_pct"] = _scalar_divide(otb_revenue, forecast_revenue) * 100
     metrics["rooms_achievement_pct"] = _scalar_divide(otb_rooms, forecast_rooms) * 100

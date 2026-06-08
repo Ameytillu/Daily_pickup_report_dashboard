@@ -34,6 +34,7 @@ def revenue_mix(transient: float, group: float, other: float):
     fig = px.pie(
         names=["Transient", "Group", "Other"],
         values=[max(transient, 0), max(group, 0), max(other, 0)],
+        title="Revenue Mix",
         hole=0.52,
         color=["Transient", "Group", "Other"],
         color_discrete_map={"Transient": COLORS["Transient"], "Group": COLORS["Group"], "Other": COLORS["Neutral"]},

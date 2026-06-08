@@ -52,6 +52,12 @@ SUMMARY_ALIASES = {
     "forecast_group_revenue": ["forecast group revenue", "group forecast revenue"],
     "forecast_rooms": ["forecast rooms", "rooms forecast", "forecast room nights"],
     "budget_rooms": ["budget rooms", "rooms budget", "budget room nights"],
+    "vs_budget_revenue": ["vs b revenue", "vs budget revenue"],
+    "vs_forecast_revenue": ["vs f revenue", "vs forecast revenue"],
+    "vs_budget_transient_revenue": ["vs b transient", "vs budget transient"],
+    "vs_forecast_transient_revenue": ["vs f transient", "vs forecast transient"],
+    "vs_budget_group_revenue": ["vs b group", "vs budget group"],
+    "vs_forecast_group_revenue": ["vs f group", "vs forecast group"],
 }
 
 
@@ -87,7 +93,7 @@ def _load_workbook_from_bytes(file_bytes: bytes) -> WorkbookData:
         if raw.dropna(how="all").empty:
             continue
         report = parse_report_sheet(raw, sheet_name)
-        if not report.pace.empty:
+        if _is_usable_report(report):
             reports[sheet_name] = report
 
     if not reports:
@@ -109,12 +115,22 @@ def parse_report_sheet(raw: pd.DataFrame, sheet_name: str) -> ReportSheet:
     return ReportSheet(name=sheet_name, pace=pace, pickup=pickup, summary=summary)
 
 
+def _is_usable_report(report: ReportSheet) -> bool:
+    if report.pace.empty:
+        return False
+    numeric_cols = ["rooms", "revenue", "transient_revenue", "group_revenue"]
+    available_cols = [col for col in numeric_cols if col in report.pace.columns]
+    if not available_cols:
+        return False
+    return report.pace[available_cols].fillna(0).abs().sum().sum() > 0
+
+
 def _extract_table(raw: pd.DataFrame, start_col: int, width: int, columns: list[str]) -> pd.DataFrame:
     section = raw.iloc[:, start_col : start_col + width].copy()
     if section.empty:
         return pd.DataFrame(columns=columns)
 
-    start_row = _find_first_date_row(section)
+    start_row = _find_first_data_row(section)
     section = section.iloc[start_row:].copy()
     section = section.dropna(how="all")
     if section.empty:
@@ -137,7 +153,13 @@ def _extract_table(raw: pd.DataFrame, start_col: int, width: int, columns: list[
     return section
 
 
-def _find_first_date_row(section: pd.DataFrame) -> int:
+def _find_first_data_row(section: pd.DataFrame) -> int:
+    for idx in range(section.shape[0]):
+        first = _normalize_label(section.iat[idx, 0])
+        second = _normalize_label(section.iat[idx, 1]) if section.shape[1] > 1 else ""
+        third = _normalize_label(section.iat[idx, 2]) if section.shape[1] > 2 else ""
+        if first == "date" and second == "day" and "rooms" in third:
+            return idx + 1
     first_col = pd.to_datetime(section.iloc[:, 0], errors="coerce")
     valid = np.where(first_col.notna())[0]
     return int(valid[0]) if len(valid) else 0
@@ -162,10 +184,16 @@ def _extract_summary(raw: pd.DataFrame) -> dict:
     fallbacks = {
         "budget_revenue": (2, 7),
         "forecast_revenue": (3, 7),
+        "vs_budget_revenue": (4, 7),
+        "vs_forecast_revenue": (5, 7),
         "budget_transient_revenue": (2, 9),
         "forecast_transient_revenue": (3, 9),
+        "vs_budget_transient_revenue": (4, 9),
+        "vs_forecast_transient_revenue": (5, 9),
         "budget_group_revenue": (2, 11),
         "forecast_group_revenue": (3, 11),
+        "vs_budget_group_revenue": (4, 11),
+        "vs_forecast_group_revenue": (5, 11),
     }
     for key, (r_idx, c_idx) in fallbacks.items():
         if pd.isna(summary.get(key)) and r_idx < raw.shape[0] and c_idx < raw.shape[1]:

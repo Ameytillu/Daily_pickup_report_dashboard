@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 
 from utils.charts import revenue_mix
 from utils.helpers import (
@@ -55,4 +56,45 @@ def render(context):
         p1.metric("Group Rooms Pickup", fmt_number(m["group_rooms_pickup"]))
         p2.metric("Group Revenue Pickup", fmt_money(m["group_revenue_pickup"]))
 
+    st.markdown("#### Budget & Forecast Summary")
+    summary = pd.DataFrame(
+        [
+            {
+                "Metric": "Revenue",
+                "Budget": m["budget_revenue"],
+                "Forecast": m["forecast_revenue"],
+                "Current OTB": m["otb_revenue"],
+                "VS Budget": m["budget_revenue_gap"],
+                "VS Forecast": m["revenue_gap"],
+            },
+            {
+                "Metric": "Transient Revenue",
+                "Budget": m["budget_transient_revenue"],
+                "Forecast": m["forecast_transient_revenue"],
+                "Current OTB": m["transient_revenue"],
+                "VS Budget": m["budget_transient_revenue_gap"],
+                "VS Forecast": m["transient_revenue_gap"],
+            },
+            {
+                "Metric": "Group Revenue",
+                "Budget": m["budget_group_revenue"],
+                "Forecast": m["forecast_group_revenue"],
+                "Current OTB": m["group_revenue"],
+                "VS Budget": m["budget_group_revenue_gap"],
+                "VS Forecast": m["group_revenue_gap"],
+            },
+        ]
+    )
+    st.dataframe(
+        summary,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Budget": st.column_config.NumberColumn(format="$%.0f"),
+            "Forecast": st.column_config.NumberColumn(format="$%.0f"),
+            "Current OTB": st.column_config.NumberColumn(format="$%.0f"),
+            "VS Budget": st.column_config.NumberColumn(format="$%.0f"),
+            "VS Forecast": st.column_config.NumberColumn(format="$%.0f"),
+        },
+    )
 
