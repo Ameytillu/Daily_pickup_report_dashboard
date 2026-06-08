@@ -26,8 +26,11 @@ def build_dashboard_context(workbook: WorkbookData, previous_sheet: str, current
     previous = workbook.reports[previous_sheet]
     current = workbook.reports[current_sheet]
     calculated_pickup = compare_reports(previous.pace, current.pace)
-    pickup = current.pickup.copy()
-    if pickup.empty or pickup.select_dtypes("number").abs().sum().sum() == 0:
+    if not _has_meaningful_pace(current.pace):
+        pickup = _zero_pickup_from_pace(current.pace)
+    else:
+        pickup = current.pickup.copy()
+    if pickup.empty or (pickup.select_dtypes("number").abs().sum().sum() == 0 and _has_meaningful_pace(current.pace)):
         pickup = calculated_pickup
 
     metrics = calculate_month_metrics(current.pace, pickup, current.summary)
@@ -64,6 +67,36 @@ def compare_reports(previous: pd.DataFrame, current: pd.DataFrame) -> pd.DataFra
     pickup["adr_pickup"] = _safe_divide(pickup["revenue_pickup"], pickup["rooms_pickup"])
     pickup["transient_adr_pickup"] = _safe_divide(pickup["transient_revenue_pickup"], pickup["transient_rooms_pickup"])
     pickup["group_adr_pickup"] = _safe_divide(pickup["group_revenue_pickup"], pickup["group_rooms_pickup"])
+    return pickup
+
+
+def _has_meaningful_pace(pace: pd.DataFrame) -> bool:
+    if pace.empty:
+        return False
+    cols = [col for col in ["rooms", "revenue", "transient_revenue", "group_revenue"] if col in pace.columns]
+    return bool(cols) and pace[cols].fillna(0).abs().sum().sum() > 0
+
+
+def _zero_pickup_from_pace(pace: pd.DataFrame) -> pd.DataFrame:
+    pickup = pd.DataFrame(
+        {
+            "date": pace["date"] if "date" in pace else pd.Series(dtype="datetime64[ns]"),
+            "day": pace["day"] if "day" in pace else "",
+        }
+    )
+    for col in [
+        "rooms_pickup",
+        "occupancy_pickup",
+        "revenue_pickup",
+        "adr_pickup",
+        "transient_rooms_pickup",
+        "transient_revenue_pickup",
+        "transient_adr_pickup",
+        "group_rooms_pickup",
+        "group_revenue_pickup",
+        "group_adr_pickup",
+    ]:
+        pickup[col] = 0
     return pickup
 
 

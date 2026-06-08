@@ -11,7 +11,7 @@ from views.pickup_calendar import render as render_calendar
 from views.projection_dashboard import render as render_projection
 from views.transient_dashboard import render as render_transient
 from utils.calculations import build_dashboard_context
-from utils.data_loader import load_workbook
+from utils.data_loader import has_meaningful_report_data, load_workbook
 from utils.helpers import apply_theme, show_error_box
 
 
@@ -77,8 +77,17 @@ def render_shell():
         return
 
     st.sidebar.divider()
-    prev_index = max(0, len(workbook.sheet_names) - 2)
-    current_index = max(0, len(workbook.sheet_names) - 1)
+    meaningful_sheets = [
+        sheet for sheet in workbook.sheet_names if has_meaningful_report_data(workbook.reports[sheet])
+    ]
+    default_current_sheet = meaningful_sheets[-1] if meaningful_sheets else workbook.sheet_names[-1]
+    default_previous_sheet = (
+        meaningful_sheets[-2]
+        if len(meaningful_sheets) >= 2
+        else workbook.sheet_names[max(0, workbook.sheet_names.index(default_current_sheet) - 1)]
+    )
+    prev_index = workbook.sheet_names.index(default_previous_sheet)
+    current_index = workbook.sheet_names.index(default_current_sheet)
     previous_sheet = st.sidebar.selectbox("Previous Report Day", workbook.sheet_names, index=prev_index)
     current_sheet = st.sidebar.selectbox("Current Report Day", workbook.sheet_names, index=current_index)
 
@@ -91,6 +100,12 @@ def render_shell():
     except Exception as exc:
         show_error_box("Unable to calculate dashboard metrics", str(exc))
         return
+
+    if not has_meaningful_report_data(workbook.reports[current_sheet]):
+        st.warning(
+            f"Worksheet {current_sheet} exists, but it does not contain booked rooms or revenue yet. "
+            "Dashboard values for that report day may be zero until the sheet is populated."
+        )
 
     st.sidebar.divider()
     page = st.sidebar.radio("Dashboard Page", list(PAGES.keys()), label_visibility="collapsed")

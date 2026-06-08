@@ -93,7 +93,7 @@ def _load_workbook_from_bytes(file_bytes: bytes) -> WorkbookData:
         if raw.dropna(how="all").empty:
             continue
         report = parse_report_sheet(raw, sheet_name)
-        if _is_usable_report(report):
+        if _is_report_day_sheet(sheet_name, report):
             reports[sheet_name] = report
 
     if not reports:
@@ -115,7 +115,7 @@ def parse_report_sheet(raw: pd.DataFrame, sheet_name: str) -> ReportSheet:
     return ReportSheet(name=sheet_name, pace=pace, pickup=pickup, summary=summary)
 
 
-def _is_usable_report(report: ReportSheet) -> bool:
+def has_meaningful_report_data(report: ReportSheet) -> bool:
     if report.pace.empty:
         return False
     numeric_cols = ["rooms", "revenue", "transient_revenue", "group_revenue"]
@@ -123,6 +123,12 @@ def _is_usable_report(report: ReportSheet) -> bool:
     if not available_cols:
         return False
     return report.pace[available_cols].fillna(0).abs().sum().sum() > 0
+
+
+def _is_report_day_sheet(sheet_name: str, report: ReportSheet) -> bool:
+    if report.pace.empty:
+        return False
+    return bool(re.fullmatch(r"\d{1,2}", str(sheet_name).strip()))
 
 
 def _extract_table(raw: pd.DataFrame, start_col: int, width: int, columns: list[str]) -> pd.DataFrame:
